@@ -1,0 +1,14 @@
+#!/bin/bash
+# Copy this file to run_my_batch.command, replace every placeholder, then run it.
+set -u
+cd "$(dirname "$0")" || exit 1
+source .venv/bin/activate
+
+python -u src/sumsub_drive_excel.py \
+  --input "/ABSOLUTE/PATH/TO/source.xlsx" \
+  --output "/ABSOLUTE/PATH/TO/source_OUTPUT.xlsx" \
+  --sheet "YOUR_WORKSHEET_NAME" \
+  --folder-id "YOUR_GOOGLE_DRIVE_FOLDER_ID" \
+  --credentials "./credentials.json" \
+  --manifest "/ABSOLUTE/PATH/TO/batch_manifest.json" \
+  --downloads-dir "/ABSOLUTE/PATH/TO/batch_pdfs"
