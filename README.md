@@ -19,6 +19,7 @@ Excel (sumsub ID + Sumsub_Url)
 - 根据 `sumsub ID` 去重，同一 ID 只下载和上传一次。
 - 使用 JSON manifest 保存进度，重跑时跳过已成功上传的项目。
 - 识别 Sumsub 404 `Applicant not found`，在链接列写入 `not found`。
+- 支持上传手动下载的 PDF，并用其覆盖原先的 `not found` 状态。
 - 输出 Excel 保留原始内容，并添加 `PDF Processing Status (interim)` 状态列。
 - Google OAuth 登录不保存密码；仅在本机保存可撤销的 token。
 
@@ -66,6 +67,10 @@ python -u src/sumsub_drive_excel.py \
 ```
 
 首次运行会打开两个授权/登录流程：Google OAuth 和 Sumsub Chromium。完成登录或 MFA 后保持浏览器打开。验证两份 PDF、Drive 链接和输出 Excel 后，删去 `--max-records 2` 执行全量任务。
+
+## 上传手动下载的 PDF
+
+将 PDF 放进 `--downloads-dir`，且确保文件名含对应的 Sumsub ID。使用 `--skip-download` 可跳过 Sumsub 浏览器；若要重新处理已标记 `not found` 的行，再增加 `--retry-not-found-with-local-pdfs`。没有匹配本地 PDF 的 `not found` 行会保留原状。
 
 ## 重跑、断网与重复上传
 
