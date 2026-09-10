@@ -334,6 +334,11 @@ def parse_args() -> argparse.Namespace:
         help="Use existing local PDFs in --downloads-dir instead of visiting Sumsub",
     )
     parser.add_argument(
+        "--retry-not-found-with-local-pdfs",
+        action="store_true",
+        help="When used with --skip-download, retry rows marked not found if a matching local PDF exists.",
+    )
+    parser.add_argument(
         "--share-anyone-with-link",
         action="store_true",
         help="Explicitly make each new PDF public to anyone with the link (use only if authorised).",
@@ -404,14 +409,15 @@ def main() -> int:
             processed += 1
             record = items.setdefault(applicant_id, {})
             existing_url = existing_drive_url(sheet, rows, columns["drive_url"])
+            marked_not_found = is_marked_not_found(sheet, rows, columns["drive_url"])
             try:
-                if is_marked_not_found(sheet, rows, columns["drive_url"]):
+                if marked_not_found and not args.retry_not_found_with_local_pdfs:
                     record.update({"status": "not_found", "updated_at": utc_now()})
                     set_row_status(sheet, rows, status_column, "Not found (retained; not retried)")
                     retained += 1
                     atomic_write_json(manifest_path, manifest)
                     continue
-                if record.get("status") == "not_found":
+                if record.get("status") == "not_found" and not args.retry_not_found_with_local_pdfs:
                     set_row_values(sheet, rows, columns["drive_url"], status_column, "not found", "Not found (retained; not retried)")
                     retained += 1
                     continue
@@ -431,6 +437,12 @@ def main() -> int:
                 pdf_path = resolve_pdf_path(record, applicant_id, downloads_dir)
                 if not pdf_path.exists():
                     if args.skip_download:
+                        if marked_not_found and args.retry_not_found_with_local_pdfs:
+                            record.update({"status": "not_found", "updated_at": utc_now()})
+                            set_row_status(sheet, rows, status_column, "Not found (no matching local PDF)")
+                            retained += 1
+                            atomic_write_json(manifest_path, manifest)
+                            continue
                         raise RuntimeError(f"Local PDF not found for --skip-download: {pdf_path}")
                     assert page is not None
                     source_url = choose_source_url(sheet, values_sheet, rows, columns["sumsub_url"])
@@ -496,3 +508,6 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"Fatal error: {exc}", file=sys.stderr)
         raise SystemExit(2)
+
+
+feat: support uploading local PDFs for not-found records
