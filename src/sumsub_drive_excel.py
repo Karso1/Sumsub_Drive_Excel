@@ -509,5 +509,3 @@ if __name__ == "__main__":
         print(f"Fatal error: {exc}", file=sys.stderr)
         raise SystemExit(2)
 
-
-feat: support uploading local PDFs for not-found records
