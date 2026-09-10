@@ -21,3 +21,5 @@ batches/2026-10/
 ## 手工下载的 PDF
 
 若已下载 PDF，可将文件放入 `--downloads-dir`，文件名含 Sumsub ID 即可，例如 `<ID>.pdf` 或 `applicant-summary-<ID>.pdf`，然后加 `--skip-download`。
+
+如需用本地 PDF 覆盖输出 Excel 中的 `not found`，请以该输出 Excel 作为 `--input`，并加 `--retry-not-found-with-local-pdfs`。已有 Drive URL 会保留；没有匹配本地 PDF 的记录继续保持 `not found`。
